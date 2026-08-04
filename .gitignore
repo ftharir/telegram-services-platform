@@ -1,0 +1,38 @@
+# Python virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environment variables & secrets (VERY IMPORTANT)
+.env
+.env.local
+*.env
+
+# IDE settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Database & Storage
+*.sqlite3
+*.db
+
+# Logs
+*.log
+logs/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docker build logs
+.docker/
