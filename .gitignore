@@ -36,3 +36,10 @@ htmlcov/
 
 # Docker build logs
 .docker/
+
+venv/
+.env
+__pycache__/
+*.pyc
+.vscode/
+.idea/
