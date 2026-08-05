@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     # Defined as str/raw input first to prevent pydantic-settings from pre-parsing as JSON
     REQUIRED_CHANNELS: str = ""
     REQUIRED_CHANNEL_IDS: str = ""
+    # تنظیمات عضویت اجباری کانال
+    REQUIRED_CHANNEL_ID: str | None = None
+    CHANNEL_LINK: str = "https://t.me/testjointesttelegram"
 
     # PostgreSQL Database
     POSTGRES_USER: str = "postgres"
