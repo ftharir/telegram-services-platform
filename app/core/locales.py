@@ -13,6 +13,13 @@ MESSAGES: Dict[str, Dict[str, str]] = {
         "btn_profile": "👤 حساب کاربری",
         "btn_settings": "⚙️ تنظیمات",
         "btn_help": "❓ راهنما و پشتیبانی",
+        
+        # متون مربوط به عضویت اجباری
+        "must_join_channel": "⚠️ <b>عضویت در کانال الزامی است!</b>\n\nبرای استفاده از خدمات ربات، لطفاً ابتدا در کانال ما عضو شده و سپس روی دکمه <b>«تایید عضویت 🔄»</b> کلیک کنید.",
+        "btn_join_channel": "📢 عضویت در کانال",
+        "btn_check_join": "🔄 تایید عضویت",
+        "not_joined_yet": "❌ شما هنوز در کانال عضو نشده‌اید! لطفاً ابتدا جوین شوید.",
+        "join_verified": "✅ عضویت شما تایید شد! خوش آمدید.",
     },
     "en": {
         "welcome": "Hello <b>{name}</b>! 👋\n\nWelcome to the <b>Telegram Services Platform</b>.\nUse the menu below to access all bot features and services.",
@@ -26,6 +33,13 @@ MESSAGES: Dict[str, Dict[str, str]] = {
         "btn_profile": "👤 Profile",
         "btn_settings": "⚙️ Settings",
         "btn_help": "❓ Help & Support",
+        
+        # Mandatory Join texts
+        "must_join_channel": "⚠️ <b>Channel Membership Required!</b>\n\nTo use our bot services, please join our official channel first and then click <b>'Verify Membership 🔄'</b>.",
+        "btn_join_channel": "📢 Join Channel",
+        "btn_check_join": "🔄 Verify Membership",
+        "not_joined_yet": "❌ You have not joined the channel yet! Please join first.",
+        "join_verified": "✅ Membership verified! Welcome.",
     },
 }
 
