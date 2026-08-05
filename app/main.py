@@ -8,11 +8,12 @@ import asyncio
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
-from aiogram.client.session.aiohttp import AiohttpSession  # <--- ۱. ایمپورت سشن
+from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.enums import ParseMode
 
 from app.bot.handlers import get_handlers_router
 from app.bot.middlewares import DbSessionMiddleware
+from app.bot.middlewares.channel_checker import ForcedMemberMiddleware  # <--- ۱. اضافه شدن میدل‌ور عضویت اجباری
 from app.core.config import settings
 from app.core.logging import get_logger
 from app.redis_client.client import close_redis, init_redis
@@ -24,18 +25,21 @@ async def main() -> None:
     logger.info("Initializing Redis connection...")
     await init_redis()
 
-    # ۲. تنظیم پروکسی محلی VPN (پورت 10809 برای v2rayN معمول است)
+    # تنظیم پروکسی محلی VPN
     session = AiohttpSession(proxy="socks5://127.0.0.1:10808")
     bot = Bot(
         token=settings.BOT_TOKEN.get_secret_value(),
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
-        session=session,  # <--- ۳. پاس دادن سشن به Bot
+        session=session,
     )
 
     dp = Dispatcher()
 
-    # ثبت میدل‌ور دیتابیس
+    # ۲. ثبت میدل‌ور دیتابیس (تزریق session و db_user)
     dp.update.outer_middleware(DbSessionMiddleware())
+
+    # ۳. ثبت میدل‌ور عضویت اجباری کانال (بعد از میدل‌ور دیتابیس اجرا می‌شود)
+    dp.update.middleware(ForcedMemberMiddleware())
 
     # ثبت روترهای هندلر
     main_router = get_handlers_router()
