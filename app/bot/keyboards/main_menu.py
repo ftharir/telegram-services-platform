@@ -1,20 +1,22 @@
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 
+from app.core.locales import get_text
 
-def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
-    """ساخت و بازگرداندن کیبورد اصلی ربات که زیر کادر چت قرار می‌گیرد."""
+
+def get_main_menu_keyboard(lang: str = "fa") -> ReplyKeyboardMarkup:
+    """ساخت کیبورد اصلی متنی متناسب با زبان کاربر (fa/en)."""
     keyboard = [
         [
-            KeyboardButton(text="🛠️ سرویس‌ها"),
-            KeyboardButton(text="👤 حساب کاربری"),
+            KeyboardButton(text=get_text("btn_services", lang)),
+            KeyboardButton(text=get_text("btn_profile", lang)),
         ],
         [
-            KeyboardButton(text="⚙️ تنظیمات"),
-            KeyboardButton(text="❓ راهنما و پشتیبانی"),
+            KeyboardButton(text=get_text("btn_settings", lang)),
+            KeyboardButton(text=get_text("btn_help", lang)),
         ],
     ]
     return ReplyKeyboardMarkup(
         keyboard=keyboard,
-        resize_keyboard=True,  # کوچک و متناسب‌سازی اندازه دکمه‌ها با صفحه گوشی
-        persistent=True,       # باقی ماندن کیبورد روی صفحه
+        resize_keyboard=True,
+        persistent=True,
     )
