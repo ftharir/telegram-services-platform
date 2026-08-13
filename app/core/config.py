@@ -96,6 +96,10 @@ class Settings(BaseSettings):
         if self.REDIS_PASSWORD:
             return f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
+    # RapidSeen API Configuration
+    RAPIDSEEN_API_KEY: str = ""
+    RAPIDSEEN_API_URL: str = "https://rapidseen.com/api/v2"  # URL پیش‌فرض SMM v2 API
+
 
 
 # Singleton instance of Settings
