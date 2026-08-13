@@ -1,6 +1,6 @@
-from datetime import datetime  # برای کار با تاریخ و زمان
-from sqlalchemy import DateTime, func  # ابزارهای تعریف تایپ تاریخ و توابع دیتابیس در SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column  # ابزارهای مدرن SQLAlchemy 2.0
+from datetime import datetime  
+from sqlalchemy import DateTime, func  
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column  
 
 
 class Base(DeclarativeBase):
@@ -19,17 +19,18 @@ class TimestampMixin:
     به‌طور خودکار به آن جدول اضافه می‌شوند.
     """
     
-    # ستون تاریخ و زمان ساخت رکوردی که به‌طور خودکار هنگام INSERT مقدار زمان فعلی سرور دیتابیس را می‌گیرد
+    
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
     )
 
-    # ستون تاریخ و زمان آخرین ویرایش که هنگام UPDATE به‌طور خودکار بروزرسانی می‌شود
+    
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now(),
         nullable=False,
     )
+    
