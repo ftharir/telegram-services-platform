@@ -1,24 +1,15 @@
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 from pydantic import BaseModel, Field
 
 
-class RapidSeenAddOrderRequest(BaseModel):
-    """مدل درخواست ثبت سفارش جدید به API."""
-    key: str
-    action: str = "add"
-    service: int
-    link: str
-    quantity: int
-
-
 class RapidSeenAddOrderResponse(BaseModel):
-    """مدل پاسخ ثبت سفارش از API."""
+    """پاسخ درخواست ثبت سفارش در RapidSeen API."""
     order: Optional[Union[int, str]] = None
     error: Optional[str] = None
 
 
 class RapidSeenOrderStatusResponse(BaseModel):
-    """مدل پاسخ استعلام وضعیت یک سفارش."""
+    """پاسخ درخواست استعلام وضعیت سفارش."""
     charge: Optional[str] = None
     start_count: Optional[Union[int, str]] = Field(default=None, alias="start_count")
     status: Optional[str] = None
@@ -27,8 +18,15 @@ class RapidSeenOrderStatusResponse(BaseModel):
     error: Optional[str] = None
 
 
+class RapidSeenCancelOrderResponse(BaseModel):
+    """پاسخ درخواست لغو سفارش."""
+    order: Optional[Union[int, str]] = None
+    cancel: Optional[Union[int, str, bool]] = None
+    error: Optional[str] = None
+
+
 class RapidSeenBalanceResponse(BaseModel):
-    """مدل پاسخ دریافت موجودی حساب API."""
+    """پاسخ استعلام موجودی اکانت مدیریت در RapidSeen."""
     balance: Optional[str] = None
     currency: Optional[str] = None
     error: Optional[str] = None
