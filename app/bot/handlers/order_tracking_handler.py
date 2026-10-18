@@ -31,7 +31,8 @@ async def list_user_orders(message: Message, db_user: User):
         return await message.answer("شما هنوز هیچ سفارشی ثبت نکرده‌اید.")
     lines = ["📋 **لیست ۱۰ سفارش اخیر شما:**\n"]
     for o in orders:
-        lines.append(f"🆔 `{o.tracking_code}` | {_status_text(o)}\n🔢 تعداد: {o.quantity:,} | 💰 هزینه: {o.cost_coins} سکه\n-------------------")
+        link_line = f"\n🔗 {o.target_link}" if o.target_link else ""
+        lines.append(f"🆔 `{o.tracking_code}` | {_status_text(o)}{link_line}\n🔢 تعداد: {o.quantity:,} | 💰 هزینه: {o.cost_coins} سکه\n-------------------")
     await message.answer("\n".join(lines), parse_mode="Markdown")
 
 
@@ -42,8 +43,10 @@ async def track_order_by_code(message: Message, db_user: User):
         order = await OrderRepository(session).get_by_tracking_code(code)
     if not order or order.user_id != db_user.id:
         return await message.answer("❌ سفارشی با این کد پیگیری یافت نشد.")
+    link_line = f"🔗 **لینک:** `{order.target_link}`\n" if order.target_link else ""
     await message.answer(
         f"📦 **اطلاعات سفارش {order.tracking_code}**\n\n"
+        f"{link_line}"
         f"🔹 **تعداد:** {order.quantity:,}\n"
         f"🔹 **هزینه:** {order.cost_coins} سکه\n"
         f"🔹 **وضعیت فعلی:** {_status_text(order)}",

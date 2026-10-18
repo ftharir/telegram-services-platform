@@ -41,6 +41,7 @@ class OrderService:
         service_id: int,
         quantity: int,
         cost_coins: int,
+        target_link: Optional[str] = None,
     ) -> Order:
         """ایجاد سفارش داخلی پایه با برسی کلید Idempotency."""
         existing_order = await self.repo.get_by_idempotency_key(idempotency_key)
@@ -61,6 +62,7 @@ class OrderService:
             quantity=quantity,
             cost_coins=cost_coins,
             status=OrderStatus.PENDING,
+            target_link=target_link,
         )
         logger.info(
             "Internal order created: id=%s, tracking_code=%s, cost=%s",

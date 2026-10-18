@@ -72,6 +72,7 @@ class OrderPlacementService:
             service_id=service_id,
             quantity=quantity,
             cost_coins=cost_coins,
+            target_link=target_link,
         )
 
         # ۴. ارسال درخواست ثبت سفارش به RapidSeen API
