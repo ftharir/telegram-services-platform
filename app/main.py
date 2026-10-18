@@ -87,7 +87,7 @@ async def main() -> None:
     logger.info("Initializing Redis connection...")
     await init_redis()
 
-    session = AiohttpSession(proxy="socks5://127.0.0.1:10808")
+    session = AiohttpSession(proxy=settings.TELEGRAM_PROXY_URL or None)
     bot = Bot(
         token=settings.BOT_TOKEN.get_secret_value(),
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),

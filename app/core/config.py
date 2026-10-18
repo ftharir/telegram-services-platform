@@ -100,6 +100,13 @@ class Settings(BaseSettings):
     RAPIDSEEN_API_KEY: str = ""
     RAPIDSEEN_API_URL: str = "https://rapidseen.com/api/v2"  # URL پیش‌فرض SMM v2 API
 
+    # Ordering (Phase 3): provider service id and price of the "view" service
+    VIEW_SERVICE_ID: int = 1
+    VIEW_PRICE_COINS_PER_100: int = 1
+
+    # Optional proxy for the Telegram connection, e.g. socks5://127.0.0.1:10808 (empty = direct)
+    TELEGRAM_PROXY_URL: str = ""
+
 
 
 # Singleton instance of Settings

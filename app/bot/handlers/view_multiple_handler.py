@@ -17,8 +17,8 @@ from app.core.config import settings
 router = Router()
 MIN_VIEW_QTY = 100
 MAX_VIEW_QTY = 100000
-PRICE_PER_VIEW = 1
-SERVICE_ID = 1  # FALLBACK service id, see docs/phase3-decisions.md
+PRICE_PER_VIEW = settings.VIEW_PRICE_COINS_PER_100  # coins per 100 views
+SERVICE_ID = settings.VIEW_SERVICE_ID
 
 @router.message(F.text == "👁👁 ثبت بازدید چندپستی (View Multiple)")
 async def start_multiple_view(message: Message, state: FSMContext):
