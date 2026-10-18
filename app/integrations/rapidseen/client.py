@@ -6,6 +6,10 @@ from app.integrations.rapidseen.schemas import (
     RapidSeenCancelOrderResponse,
 )
 
+class RapidSeenAPIError(Exception):
+    """Network, timeout or HTTP-level failure while talking to the RapidSeen API."""
+
+
 class RapidSeenClient:
     def __init__(self, api_key: str, base_url: str = "https://rapidseen.com/api/v2"):
         self.api_key = api_key
