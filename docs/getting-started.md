@@ -63,7 +63,7 @@ The web server answers on `http://localhost:8000`:
 
 ```bash
 python test_phase2_suite.py        # mock-based Phase 2 suite, no database needed
-pytest                             # tests/ — several need the PostgreSQL container running
+pytest                             # tests/ — three of them need the PostgreSQL container running
 ```
 
 See [`known-issues-and-roadmap.md`](known-issues-and-roadmap.md) for the current state of the test suite.

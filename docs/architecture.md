@@ -6,7 +6,7 @@ The platform is one Python process that runs two things side by side: the **Tele
 flowchart LR
     U[Telegram user] --> B[Bot - aiogram 3]
     B --> MW[Middlewares<br>DB session + user registration<br>forced channel join - optional]
-    MW --> H[Handlers<br>start, account, phase 3 drafts]
+    MW --> H[Handlers<br>start, account, ordering, tracking]
     H --> S[Services<br>user, wallet, order, placement, lifecycle]
     S --> R[Repositories]
     R --> PG[(PostgreSQL)]

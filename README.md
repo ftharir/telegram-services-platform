@@ -16,7 +16,7 @@ An async Telegram bot with a wallet, order management and an external SMM API (R
 
 Users talk to a Telegram bot in Persian or English. Every user gets a **wallet of coins**; services (for example post views) are bought with coins, each purchase becomes an **order** with a tracking code, and the order is fulfilled through the **RapidSeen SMM API**. The project is split into phases — infrastructure, wallet and order engine, and the user-facing ordering flows — and the decisions taken in each phase are written down in `docs/`.
 
-> **Status.** Phases 1 and 2 are implemented. Phase 3 (the ordering flows in the bot) is a **draft**: the code is in the repository but not yet connected to the running bot. [`docs/known-issues-and-roadmap.md`](docs/known-issues-and-roadmap.md) lists exactly what is missing.
+> **Status.** Phases 1 and 2 are implemented. Phase 3 (the ordering flows in the bot) is connected to the real services and covered by unit tests, but has **not yet been run end to end** against a live bot and provider. [`docs/known-issues-and-roadmap.md`](docs/known-issues-and-roadmap.md) lists what is still open.
 
 ---
 
@@ -27,12 +27,12 @@ Users talk to a Telegram bot in Persian or English. Every user gets a **wallet o
 | **Bot** | `/start`, main menu, profile, settings, help, bilingual (fa / en) with language switching, automatic user registration on the first message |
 | **Forced channel join** | Middleware that checks membership of required channels (implemented, currently not enabled in `app/main.py`) |
 | **Wallet** | Coin balance per user, atomic `credit` / `debit`, transaction history (`CREDIT`, `DEBIT`, `REFUND`, `ADJUSTMENT`), `InsufficientBalanceError` |
-| **Orders** | Internal orders with a tracking code (`ORD-XXXXXXXX`), idempotency key against double submission, snapshot of price and service at order time |
+| **Orders** | Internal orders with a tracking code (`ORD-YYYYMMDD-XXXXX`), idempotency key against double submission, snapshot of price and service at order time |
 | **RapidSeen client** | `add_order`, `get_status`, `cancel_order` over `httpx`, typed with Pydantic schemas |
 | **Order lifecycle** | Status polling and mapping to internal states, cancel *requests*, proportional refund for `PARTIAL` / `CANCELED` orders with double-refund protection |
 | **Web service** | FastAPI with `/health`, `/health/liveness`, `/health/readiness` (checks PostgreSQL and Redis) |
 | **Operations** | Concurrent runner for bot + web server with graceful shutdown, logging setup, Alembic async migrations, Docker Compose for PostgreSQL and Redis |
-| **Phase 3 (draft)** | Ordering flows for single and multi-post views with a state machine (quantity → speed → link → confirmation), link validation, order tracking, main keyboard |
+| **Phase 3** | Ordering flows for single and multi-post views with a state machine (quantity → speed → link → confirmation), link validation, order list and tracking by code, ordering keyboard opened from the *Services* button |
 
 ## Architecture
 
@@ -92,7 +92,7 @@ telegram-services-platform/
 │   ├── web.py                   FastAPI application
 │   ├── api/                     health endpoints
 │   ├── bot/
-│   │   ├── handlers/            start, account, phase 3 flows (draft)
+│   │   ├── handlers/            start, account, view orders, order tracking
 │   │   ├── keyboards/ states/   inline and reply keyboards, FSM states
 │   │   └── middlewares/         DB session + user registration, forced channel join
 │   ├── core/                    settings, logging, enums, locales, shutdown
@@ -111,10 +111,10 @@ telegram-services-platform/
 
 ```bash
 python test_phase2_suite.py     # no database needed - wallet, refunds, status mapping, tracking code
-pytest                          # tests/ - some need the PostgreSQL container running
+pytest                          # tests/ - three database tests need the PostgreSQL container running
 ```
 
-`test_phase2_suite.py` passes (5 of 5 checks). Part of `tests/` currently fails at import because of one missing exception class; this and the other open points are listed in [`docs/known-issues-and-roadmap.md`](docs/known-issues-and-roadmap.md).
+`test_phase2_suite.py` passes (5 of 5 checks) and 20 tests in `tests/` pass without a database (RapidSeen client, link validator, Phase 3 handlers). The three database tests need `docker compose up -d` first; see [`docs/known-issues-and-roadmap.md`](docs/known-issues-and-roadmap.md).
 
 ## Documentation
 
@@ -138,7 +138,7 @@ pytest                          # tests/ - some need the PostgreSQL container ru
 
 - **فاز ۱:** پایه دیتابیس و زیرساخت، ربات دو‌زبانه (فارسی/انگلیسی)، عضویت اجباری کانال، سلامت‌سنجی (`/health`).
 - **فاز ۲:** کیف‌پول (کسر و افزایش اتمیک سکه)، ثبت سفارش با کد پیگیری و کلید جلوگیری از ثبت تکراری، اتصال به RapidSeen API، چرخه عمر سفارش و مرجوعی متناسب برای سفارش‌های ناقص یا لغوشده.
-- **فاز ۳ (پیش‌نویس):** جریان ثبت بازدید تک‌پستی و چندپستی، اعتبارسنجی لینک و پیگیری سفارش. هنوز به ربات در حال اجرا وصل نشده است.
+- **فاز ۳:** جریان ثبت بازدید تک‌پستی و چندپستی، اعتبارسنجی لینک و پیگیری سفارش؛ به سرویس‌های اصلی وصل شده و تست واحد دارد، ولی هنوز یک‌بار به‌صورت کامل با ربات و سرویس‌دهنده‌ی واقعی اجرا نشده است.
 
 نصب و اجرا: بخش **Quick start** بالا. موارد ناقص و برنامه ادامه‌ی کار: [`docs/known-issues-and-roadmap.md`](docs/known-issues-and-roadmap.md).
 
