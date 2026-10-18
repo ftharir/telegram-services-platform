@@ -7,7 +7,7 @@ services:
     restart: always  
     environment:
       POSTGRES_USER: postgres  
-      POSTGRES_PASSWORD: mysecretpassword  
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}  
       POSTGRES_DB: telegram_platform_db  
     ports:
       - "5434:5432"  
