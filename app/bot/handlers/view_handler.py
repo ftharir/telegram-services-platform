@@ -1,19 +1,24 @@
+from uuid import uuid4
+
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from app.bot.states.view_states import ViewOrderStates
 from app.bot.keyboards.view_keyboards import get_speed_keyboard, get_confirm_keyboard, get_cancel_reply_keyboard
 from app.services.link_validator_service import LinkValidatorService
-from app.services.wallet_service import WalletService
-from app.services.order_lifecycle_service import OrderLifecycleService
-from app.services.rapidseen_client import RapidSeenClient
+from app.services.wallet_service import WalletService, InsufficientBalanceError
+from app.services.order_service import DuplicateOrderError
+from app.services.order_placement_service import OrderPlacementService, OrderPlacementError
+from app.integrations.rapidseen.client import RapidSeenClient
+from app.database.models.user import User
 from app.database.session import async_session_maker
-from app.core.exceptions import InsufficientBalanceError
+from app.core.config import settings
 
 router = Router()
 MIN_VIEW_QTY = 100
 MAX_VIEW_QTY = 100000
 PRICE_PER_VIEW = 1
+SERVICE_ID = 1  # FALLBACK service id, see docs/phase3-decisions.md
 
 @router.message(F.text == "👁 ثبت بازدید (View)")
 async def start_single_view(message: Message, state: FSMContext):
@@ -51,7 +56,7 @@ async def process_speed(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer("اکنون لینک پست یا خود پست را ارسال/فوروارد کنید:")
 
 @router.message(ViewOrderStates.WAITING_FOR_POST)
-async def process_post_link(message: Message, state: FSMContext):
+async def process_post_link(message: Message, state: FSMContext, db_user: User):
     if message.text == "❌ لغو عملیات":
         await state.clear()
         return await message.answer("عملیات لغو شد.")
@@ -61,14 +66,14 @@ async def process_post_link(message: Message, state: FSMContext):
     validation = LinkValidatorService.validate_telegram_post_link(raw_link)
     if not validation["is_valid"]:
         return await message.answer(f"❌ {validation["error"]}\nلطفاً لینک صحیح را وارد کنید:")
-    await state.update_data(target_link=validation["final_link"])
+    await state.update_data(target_link=validation["final_link"], idempotency_key=uuid4().hex)
     await state.set_state(ViewOrderStates.CONFIRMING_ORDER)
     data = await state.get_data()
     qty = data["quantity"]
     cost = (qty // 100) * PRICE_PER_VIEW
     async with async_session_maker() as session:
         ws = WalletService(session)
-        balance = await ws.get_balance(message.from_user.id)
+        balance = await ws.get_balance(db_user.id)
     remains = balance - cost
     summary_text = (f"📋 **خلاصه سفارش بازدید**\n\n🔹 **نوع سرویس:** بازدید تک‌پستی (View)\n🔹 **تعداد بازدید:** {qty:,}\n🔹 **سرعت انتخاب‌شده:** {data["speed"]}\n🔗 **لینک پست:** `{validation["final_link"]}`\n\n💰 **هزینه سفارش:** {cost} سکه\n💳 **موجودی فعلی شما:** {balance} سکه\n💵 **موجودی پس از کسر:** {remains} سکه\n")
     if remains < 0:
@@ -84,24 +89,42 @@ async def cancel_order_callback(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text("❌ عملیات سفارش لغو شد.")
 
 @router.callback_query(ViewOrderStates.CONFIRMING_ORDER, F.data == "confirm_view_order")
-async def confirm_single_view(callback: CallbackQuery, state: FSMContext):
+async def confirm_single_view(callback: CallbackQuery, state: FSMContext, db_user: User):
     data = await state.get_data()
     qty = data["quantity"]
     cost = (qty // 100) * PRICE_PER_VIEW
     link = data["target_link"]
-    user_id = callback.from_user.id
     async with async_session_maker() as session:
-        ws = WalletService(session)
-        lifecycle = OrderLifecycleService(session)
+        client = RapidSeenClient(api_key=settings.RAPIDSEEN_API_KEY, base_url=settings.RAPIDSEEN_API_URL)
+        placement = OrderPlacementService(session, rapidseen_client=client)
         try:
-            await ws.debit(user_id=user_id, amount=cost, description=f"ثبت سفارش بازدید برای {link}")
+            order = await placement.place_order(
+                user_id=db_user.id,
+                service_id=SERVICE_ID,
+                quantity=qty,
+                cost_coins=cost,
+                target_link=link,
+                idempotency_key=data["idempotency_key"],
+            )
+            await session.commit()
         except InsufficientBalanceError:
+            await session.rollback()
             await callback.message.edit_text("❌ موجودی سکه شما برای این سفارش کافی نیست.")
             await state.clear()
             return
-        order = await lifecycle.create_order(user_id=user_id, service_type="VIEW", quantity=qty, cost=cost, target_link=link)
-        await session.commit()
-    client = RapidSeenClient()
-    await client.add_order(service_id=1, link=link, quantity=qty)  # FALLBACK service_id=1
-    await callback.message.edit_text(f"✅ **سفارش شما با موفقیت ثبت شد!**\n\n🆔 **کد پیگیری:** `{order.tracking_code}`\n🔗 **لینک:** `{link}`\n🔢 **تعداد:** {qty:,}\n💰 **هزینه:** {cost} سکه\n\nسفارش شما در جریان پردازش قرار گرفت.", parse_mode="Markdown")
+        except DuplicateOrderError:
+            await session.rollback()
+            await callback.message.edit_text("ℹ️ این سفارش قبلاً ثبت شده است.")
+            await state.clear()
+            return
+        except OrderPlacementError:
+            await session.commit()  # keep the automatic refund and the FAILED status
+            await callback.message.edit_text("❌ ثبت سفارش نزد سرویس‌دهنده ناموفق بود. سکه‌های شما بازگردانده شد.")
+            await state.clear()
+            return
+    await callback.message.edit_text(
+        f"✅ **سفارش شما با موفقیت ثبت شد!**\n\n🆔 **کد پیگیری:** `{order.tracking_code}`\n🔗 **لینک:** `{link}`\n"
+        f"🔢 **تعداد:** {qty:,}\n💰 **هزینه:** {cost} سکه\n\nسفارش شما در جریان پردازش قرار گرفت.",
+        parse_mode="Markdown",
+    )
     await state.clear()

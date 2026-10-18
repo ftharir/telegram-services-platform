@@ -12,6 +12,7 @@ from app.bot.keyboards import (
     get_settings_inline_keyboard,
     get_support_inline_keyboard,
 )
+from app.bot.keyboards.main_keyboard import get_main_keyboard
 from app.bot.middlewares.channel_checker import is_user_member
 
 logger = logging.getLogger(__name__)
@@ -94,7 +95,7 @@ async def support_handler(message: Message, db_user: User) -> None:
 @router.message(F.text.in_({"🛠️ سرویس‌ها", "🛠️ Services"}))
 async def services_handler(message: Message, db_user: User) -> None:
     lang = db_user.language_code or "fa"
-    await message.answer(text=get_text("services", lang))
+    await message.answer(text=get_text("services", lang), reply_markup=get_main_keyboard())
 
 
 @router.callback_query(F.data.startswith("lang_"))
