@@ -53,7 +53,7 @@ async def test_double_refund_protection():
     mock_order.quantity = 1000
     mock_order.cost_coins = 500
     mock_order.status = OrderStatus.IN_PROGRESS
-    mock_order.external_order_id = 9988
+    mock_order.rapidseen_order_id = "9988"
     mock_session = AsyncMock()
     mock_client = AsyncMock()
     lifecycle_service = OrderLifecycleService(mock_session, rapidseen_client=mock_client)

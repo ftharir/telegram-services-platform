@@ -13,7 +13,7 @@ async def test():
     mock_order.quantity = 1000
     mock_order.cost_coins = 50
     mock_order.tracking_code = "ORD-TEST-TASK6"
-    mock_order.external_order_id = 554433
+    mock_order.rapidseen_order_id = "554433"
     mock_order.status = OrderStatus.IN_PROGRESS
     mock_order.idempotency_key = "task6_key_1"
 
