@@ -63,10 +63,19 @@ The web server answers on `http://localhost:8000`:
 
 ```bash
 python test_phase2_suite.py        # mock-based Phase 2 suite, no database needed
-pytest                             # tests/ — three of them need the PostgreSQL container running
+pytest                             # tests/ — three of them need a migrated PostgreSQL database
 ```
 
-See [`known-issues-and-roadmap.md`](known-issues-and-roadmap.md) for the current state of the test suite.
+The database tests create their own users inside a transaction and roll back, but they still write to the database named in `.env`. Point them at a **separate, empty database** instead of your development data, for example:
+
+```bash
+docker run -d --rm --name tsp_test_pg -e POSTGRES_PASSWORD=choose-one -e POSTGRES_DB=telegram_platform_test -p 5544:5432 postgres:16-alpine
+export POSTGRES_PORT=5544 POSTGRES_DB=telegram_platform_test POSTGRES_PASSWORD=choose-one
+alembic upgrade head
+pytest
+```
+
+(environment variables take precedence over `.env`). See [`known-issues-and-roadmap.md`](known-issues-and-roadmap.md) for what is still open.
 
 ## Network note
 

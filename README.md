@@ -111,10 +111,10 @@ telegram-services-platform/
 
 ```bash
 python test_phase2_suite.py     # no database needed - wallet, refunds, status mapping, tracking code
-pytest                          # tests/ - three database tests need the PostgreSQL container running
+pytest                          # tests/ - three tests need a migrated PostgreSQL database (use a separate one)
 ```
 
-`test_phase2_suite.py` passes (5 of 5 checks) and 20 tests in `tests/` pass without a database (RapidSeen client, link validator, Phase 3 handlers). The three database tests need `docker compose up -d` first; see [`docs/known-issues-and-roadmap.md`](docs/known-issues-and-roadmap.md).
+`test_phase2_suite.py` passes (5 of 5 checks) and all 25 tests in `tests/` pass against a fresh database created with `alembic upgrade head`; 22 of them need no database at all. How to run the database tests safely: [`docs/getting-started.md`](docs/getting-started.md).
 
 ## Documentation
 
