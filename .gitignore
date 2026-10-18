@@ -43,3 +43,15 @@ __pycache__/
 *.pyc
 .vscode/
 .idea/
+
+# Local helper scripts and dumps (never commit; the dump contains the contents of .env)
+project_dump.txt
+phase2_context_extra.txt
+export_project.py
+make_test_file.py
+make_tests.py
+setup_phase3.py
+update_menu.py
+credit_script.py
+test_wallet_manual.py
+ReplyKeyboardMarkup
