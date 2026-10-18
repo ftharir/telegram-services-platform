@@ -16,7 +16,7 @@
 - **Decision**: handlers use `db_user.id` (injected by the DB middleware), not the Telegram id, for the wallet and for orders.
 
 ## Tracking is limited to the owner
-- **Decision**: a tracking code is shown only to the user who owns the order. The order does not store the target link yet, so the link is not shown (see known issues).
+- **Decision**: a tracking code is shown only to the user who owns the order. The tracking screens show the stored target link (`orders.target_link`, added by the migration `a3c7e1d5b9f2`; older orders have none).
 
 ## Services button
 - **Decision**: the *Services* button of the main menu opens the ordering keyboard (view, multi-view, order list, wallet).

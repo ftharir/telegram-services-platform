@@ -63,6 +63,7 @@ erDiagram
         string idempotency_key
         string rapidseen_order_id
         int service_id
+        string target_link
         int quantity
         int cost_coins
         enum status

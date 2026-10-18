@@ -41,7 +41,7 @@ Fill in `.env`. **Never commit this file** — it is in `.gitignore`.
 
 ```bash
 docker compose up -d               # PostgreSQL on 5434, Redis on 6379
-alembic upgrade head               # users, wallets, wallet_transactions, orders
+alembic upgrade head               # users, wallets, wallet_transactions, orders (+ orders.target_link)
 ```
 
 ## 4 · Run
