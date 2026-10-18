@@ -107,6 +107,10 @@ class Settings(BaseSettings):
     # Optional proxy for the Telegram connection, e.g. socks5://127.0.0.1:10808 (empty = direct)
     TELEGRAM_PROXY_URL: str = ""
 
+    # How often (seconds) open orders are checked at RapidSeen; 0 disables the check.
+    # The check only runs when RAPIDSEEN_API_KEY is set.
+    ORDER_POLL_INTERVAL_SECONDS: int = 60
+
 
 
 # Singleton instance of Settings

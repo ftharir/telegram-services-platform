@@ -8,6 +8,8 @@ from app.database.session import engine
 from app.redis_client.client import close_redis
 from app.main import main as start_bot
 from app.web import app as fastapi_app
+from app.core.config import settings
+from app.services.order_polling import poll_open_orders_forever
 
 logger = get_logger(__name__)
 
@@ -40,10 +42,12 @@ async def main() -> None:
     register_shutdown_callback(close_db_engine)
 
     try:
-        await asyncio.gather(
-            start_bot(),
-            start_web_server(),
-        )
+        tasks = [start_bot(), start_web_server()]
+        if settings.RAPIDSEEN_API_KEY and settings.ORDER_POLL_INTERVAL_SECONDS > 0:
+            tasks.append(poll_open_orders_forever(settings.ORDER_POLL_INTERVAL_SECONDS))
+        else:
+            logger.info("Order status polling is off (no RAPIDSEEN_API_KEY or interval is 0).")
+        await asyncio.gather(*tasks)
     except (KeyboardInterrupt, SystemExit):
         logger.info("Termination requested by user/system.")
     except Exception as e:
