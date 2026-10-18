@@ -42,6 +42,7 @@ class OrderRepository:
         quantity: int,
         cost_coins: int,
         status: OrderStatus = OrderStatus.PENDING,
+        target_link: Optional[str] = None,
     ) -> Order:
         """ساخت یک سفارش جدید در حالت اولیه PENDING."""
         order = Order(
@@ -52,6 +53,7 @@ class OrderRepository:
             quantity=quantity,
             cost_coins=cost_coins,
             status=status,
+            target_link=target_link,
         )
         self.session.add(order)
         await self.session.flush()

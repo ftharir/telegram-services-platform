@@ -56,6 +56,12 @@ class Order(Base, TimestampMixin):
         comment="شناسه سرویس انتخاب‌شده",
     )
 
+    target_link: Mapped[Optional[str]] = mapped_column(
+        String(512),
+        nullable=True,
+        comment="لینک هدف سفارش (پست تلگرام)",
+    )
+
     quantity: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
