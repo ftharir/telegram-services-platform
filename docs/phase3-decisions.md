@@ -3,7 +3,7 @@
 ## RapidSeen Service ID Fallback
 - **Decision**: Service ID = 1 selected as default for Telegram View orders in RapidSeen API.
 - **Reason**: RapidSeen API documentation requires service_id integer parameter.
-- **Fallback Note**: FALLBACK service_id=1 set in view_handler and view_multiple_handler.
+- **Fallback Note**: the default is `VIEW_SERVICE_ID=1` and `VIEW_PRICE_COINS_PER_100=1` in `app/core/config.py`; both can be overridden in `.env` and must be replaced by the real service id and price before going live.
 
 ## Orders go through the placement service
 - **Decision**: Phase 3 handlers place orders with `OrderPlacementService.place_order` instead of debiting the wallet and creating the order themselves.

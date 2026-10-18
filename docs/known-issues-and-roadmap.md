@@ -7,8 +7,8 @@ A plain list of what is incomplete or inconsistent at the moment, checked agains
 | # | Where | What | Effect |
 |---|---|---|---|
 | 1 | Phase 3 flows | Connected to the real services and covered by mock-based unit tests, but **not yet run against a live bot, database and RapidSeen account**. | Do one end-to-end run with a test bot before relying on them. |
-| 2 | `view_handler.py`, `view_multiple_handler.py` | Service id `1` and a price of 1 coin per 100 views are fallback constants (see [`phase3-decisions.md`](phase3-decisions.md)). | Needs confirmation from the real service list; move to configuration. |
-| 3 | `app/main.py` | The bot session uses a hard-coded local SOCKS5 proxy, `socks5://127.0.0.1:10808`. The forced-channel-join middleware is implemented but its registration is commented out. The file also starts with the previous version of itself inside a block comment. | Not portable; make the proxy and the middleware configurable. |
+| 2 | `.env` (`VIEW_SERVICE_ID`, `VIEW_PRICE_COINS_PER_100`) | Both are configurable now, but the defaults (service id `1`, 1 coin per 100 views) are placeholders. | Set the real service id from the RapidSeen service list and decide the coin price (see [`phase3-decisions.md`](phase3-decisions.md)). |
+| 3 | `app/main.py` | The forced-channel-join middleware is implemented but its registration is commented out. The file also starts with the previous version of itself inside a block comment. | Enable the middleware (ideally behind a setting) and delete the old block. |
 | 4 | `app/web.py` and `app/server.py` | Two FastAPI entry points; only `app/web.py` is used by `app/run.py`. | Remove or merge the unused one. |
 | 5 | `docker-compose.yml` | Development database password in plain text. | Change before any shared deployment; ideally read it from `.env`. |
 | 6 | `OrderLifecycleService.process_open_orders` | Nothing calls it periodically. | Orders stay `SUBMITTED` until a status check is triggered; add a background job. |
@@ -22,13 +22,14 @@ A plain list of what is incomplete or inconsistent at the moment, checked agains
 * The order now stores its target link: new nullable column `orders.target_link` with the Alembic revision `a3c7e1d5b9f2`; the order list and the tracking screen show the link. Orders created before the migration have no link.
 * The Phase 3 routers are registered in `get_handlers_router()`; the *Services* button of the main menu opens the ordering keyboard.
 * The three database tests no longer depend on a user with id 1 and no longer break each other's event loops (`tests/conftest.py`). The whole suite (25 tests) passes against a fresh PostgreSQL 16 database created with `alembic upgrade head`, and leaves no rows behind.
+* The Telegram proxy is no longer hard-coded: set `TELEGRAM_PROXY_URL` (empty means a direct connection). The service id and the price of the view service are settings too (`VIEW_SERVICE_ID`, `VIEW_PRICE_COINS_PER_100`).
 * A stale test (`tests/test_rapidseen_final.py`) was rewritten for the current client; tests were added for the link validator and the Phase 3 handlers.
 
 ## Roadmap
 
 1. Run the whole flow once end to end with a test bot, a test database and a RapidSeen test account.
-2. Confirm service ids and prices with the RapidSeen service list; move them to configuration.
-3. Make the proxy and the forced-join middleware configurable.
+2. Fill in the real `VIEW_SERVICE_ID` and the coin price from the RapidSeen service list.
+3. Make the forced-join middleware configurable.
 4. Add a background job that calls `OrderLifecycleService.process_open_orders` periodically.
 5. Admin features: manual wallet adjustments (`ADJUSTMENT` transactions exist), order search.
 6. CI: run the tests and a linter on every push.

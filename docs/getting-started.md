@@ -34,6 +34,8 @@ Fill in `.env`. **Never commit this file** — it is in `.gitignore`.
 | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_DB` | Redis connection | `127.0.0.1`, `6379`, empty, `0` |
 | `API_HOST`, `API_PORT` | web server | `0.0.0.0`, `8000` |
 | `RAPIDSEEN_API_KEY`, `RAPIDSEEN_API_URL` | RapidSeen SMM API v2 | empty, `https://rapidseen.com/api/v2` |
+| `VIEW_SERVICE_ID`, `VIEW_PRICE_COINS_PER_100` | provider service id of the *view* service and its price in coins per 100 views | `1`, `1` (placeholders) |
+| `TELEGRAM_PROXY_URL` | optional proxy for the Telegram connection, e.g. `socks5://127.0.0.1:10808` | empty (direct) |
 
 `docker-compose.yml` ships with a **development-only** database password. Change it (and the matching `POSTGRES_PASSWORD` in `.env`) before using the stack anywhere other than your own machine.
 
@@ -79,4 +81,4 @@ pytest
 
 ## Network note
 
-`app/main.py` creates the bot session with a local SOCKS5 proxy (`socks5://127.0.0.1:10808`, the author's VPN). If you do not use a proxy on that address, the bot cannot reach Telegram; see the known issues.
+If Telegram is not reachable directly from your network, set `TELEGRAM_PROXY_URL` in `.env` (for example `socks5://127.0.0.1:10808`). With an empty value the bot connects directly.
