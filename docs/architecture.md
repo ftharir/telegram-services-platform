@@ -5,7 +5,7 @@ The platform is one Python process that runs two things side by side: the **Tele
 ```mermaid
 flowchart LR
     U[Telegram user] --> B[Bot - aiogram 3]
-    B --> MW[Middlewares<br>DB session + user registration<br>forced channel join - optional]
+    B --> MW[Middlewares<br>DB session + user registration<br>forced channel join]
     MW --> H[Handlers<br>start, account, ordering, tracking]
     H --> S[Services<br>user, wallet, order, placement, lifecycle]
     S --> R[Repositories]
@@ -77,8 +77,8 @@ erDiagram
 ## Order flow (Phase 2)
 
 1. **Placement** (`OrderPlacementService.place_order`): the cost is debited from the wallet, an internal order with a tracking code and an idempotency key is created, and the order is sent to RapidSeen. If the API call fails, the debit is refunded and the order is marked `FAILED`.
-2. **Lifecycle** (`OrderLifecycleService.process_open_orders`): open orders are polled; the external status is mapped to the internal `OrderStatus`.
-3. **Refund**: for `PARTIAL` and `CANCELED` orders the refund is proportional, `refund = cost * remains / original_quantity`, rounded half-up to whole coins; a refund is made only once (double-refund protection) and only when `remains` is known.
+2. **Lifecycle** (`OrderLifecycleService.process_open_orders`): a background job (`app/services/order_polling.py`, started by `app/run.py` when an API key is set) polls the open orders every `ORDER_POLL_INTERVAL_SECONDS`; the provider status is mapped to the internal `OrderStatus` and the refund below is applied.
+3. **Refund**: for `PARTIAL` and `CANCELED` orders the refund is proportional, `refund = cost * remains / original_quantity`, rounded half-up to whole coins; a refund is made only once (double-refund protection through `orders.refunded_coins`) and only when `remains` is known.
 4. **Cancel**: `request_cancel` only *requests* the cancellation; the final status comes from the next status poll.
 
 The business rules and the assumptions behind them are logged in [`phase2-decisions.md`](phase2-decisions.md) and [`phase3-decisions.md`](phase3-decisions.md).

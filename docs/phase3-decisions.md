@@ -21,3 +21,6 @@
 ## Services button
 - **Decision**: the *Services* button of the main menu opens the ordering keyboard (view, multi-view, order list, wallet).
 
+
+## Order status check runs in the background
+- **Decision**: `app/run.py` starts a polling task next to the bot and the web server when `RAPIDSEEN_API_KEY` is set and `ORDER_POLL_INTERVAL_SECONDS` is above 0. A failed round is logged and retried; it never stops the bot.

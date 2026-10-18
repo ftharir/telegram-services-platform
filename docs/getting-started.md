@@ -33,11 +33,12 @@ Fill in `.env`. **Never commit this file** — it is in `.gitignore`.
 | `POSTGRES_HOST`, `POSTGRES_PORT` | database address | `127.0.0.1`, `5434` |
 | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_DB` | Redis connection | `127.0.0.1`, `6379`, empty, `0` |
 | `API_HOST`, `API_PORT` | web server | `0.0.0.0`, `8000` |
+| `ORDER_POLL_INTERVAL_SECONDS` | seconds between status checks of open orders at RapidSeen (0 = off; runs only with `RAPIDSEEN_API_KEY`) | `60` |
 | `RAPIDSEEN_API_KEY`, `RAPIDSEEN_API_URL` | RapidSeen SMM API v2 | empty, `https://rapidseen.com/api/v2` |
 | `VIEW_SERVICE_ID`, `VIEW_PRICE_COINS_PER_100` | provider service id of the *view* service and its price in coins per 100 views | `1`, `1` (placeholders) |
 | `TELEGRAM_PROXY_URL` | optional proxy for the Telegram connection, e.g. `socks5://127.0.0.1:10808` | empty (direct) |
 
-`docker-compose.yml` ships with a **development-only** database password. Change it (and the matching `POSTGRES_PASSWORD` in `.env`) before using the stack anywhere other than your own machine.
+`docker-compose.yml` reads the database password from `POSTGRES_PASSWORD` in `.env`; there is no password in the repository.
 
 ## 3 · Start the services and create the tables
 
@@ -64,7 +65,6 @@ The web server answers on `http://localhost:8000`:
 ## Tests
 
 ```bash
-python test_phase2_suite.py        # mock-based Phase 2 suite, no database needed
 pytest                             # tests/ — three of them need a migrated PostgreSQL database
 ```
 
@@ -77,7 +77,7 @@ alembic upgrade head
 pytest
 ```
 
-(environment variables take precedence over `.env`). See [`known-issues-and-roadmap.md`](known-issues-and-roadmap.md) for what is still open.
+(environment variables take precedence over `.env`).
 
 ## Network note
 

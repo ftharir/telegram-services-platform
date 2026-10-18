@@ -16,7 +16,7 @@ An async Telegram bot with a wallet, order management and an external SMM API (R
 
 Users talk to a Telegram bot in Persian or English. Every user gets a **wallet of coins**; services (for example post views) are bought with coins, each purchase becomes an **order** with a tracking code, and the order is fulfilled through the **RapidSeen SMM API**. The project is split into phases — infrastructure, wallet and order engine, and the user-facing ordering flows — and the decisions taken in each phase are written down in `docs/`.
 
-> **Status.** Phases 1 and 2 are implemented. Phase 3 (the ordering flows in the bot) is connected to the real services and covered by unit tests, but has **not yet been run end to end** against a live bot and provider. [`docs/known-issues-and-roadmap.md`](docs/known-issues-and-roadmap.md) lists what is still open.
+> **Status.** Phases 1 and 2 are implemented. Phase 3 (the ordering flows in the bot) is connected to the real services and covered by unit tests, but has **not yet been run end to end** against a live bot and provider. Before going live, put the real RapidSeen key and the real service id and coin price in `.env` (`RAPIDSEEN_API_KEY`, `VIEW_SERVICE_ID`, `VIEW_PRICE_COINS_PER_100`; the defaults are placeholders).
 
 ---
 
@@ -25,11 +25,11 @@ Users talk to a Telegram bot in Persian or English. Every user gets a **wallet o
 | Area | What is there |
 |---|---|
 | **Bot** | `/start`, main menu, profile, settings, help, bilingual (fa / en) with language switching, automatic user registration on the first message |
-| **Forced channel join** | Middleware that checks membership of required channels (implemented, currently not enabled in `app/main.py`) |
+| **Forced channel join** | Middleware that checks membership of the required channel before the bot answers (active when `REQUIRED_CHANNEL_ID` is set) |
 | **Wallet** | Coin balance per user, atomic `credit` / `debit`, transaction history (`CREDIT`, `DEBIT`, `REFUND`, `ADJUSTMENT`), `InsufficientBalanceError` |
 | **Orders** | Internal orders with a tracking code (`ORD-YYYYMMDD-XXXXX`), idempotency key against double submission, snapshot of price and service at order time |
 | **RapidSeen client** | `add_order`, `get_status`, `cancel_order` over `httpx`, typed with Pydantic schemas |
-| **Order lifecycle** | Status polling and mapping to internal states, cancel *requests*, proportional refund for `PARTIAL` / `CANCELED` orders with double-refund protection |
+| **Order lifecycle** | A background job checks open orders at RapidSeen every `ORDER_POLL_INTERVAL_SECONDS` (default 60, only with an API key), maps the provider status to internal states, cancel *requests*, proportional refund for `PARTIAL` / `CANCELED` orders with double-refund protection |
 | **Web service** | FastAPI with `/health`, `/health/liveness`, `/health/readiness` (checks PostgreSQL and Redis) |
 | **Operations** | Concurrent runner for bot + web server with graceful shutdown, logging setup, Alembic async migrations, Docker Compose for PostgreSQL and Redis |
 | **Phase 3** | Ordering flows for single and multi-post views with a state machine (quantity → speed → link → confirmation), link validation, order list and tracking by code, ordering keyboard opened from the *Services* button |
@@ -102,19 +102,17 @@ telegram-services-platform/
 │   └── redis_client/
 ├── alembic/                     migrations: users, wallets, transactions, orders
 ├── docs/                        architecture, getting started, decisions, known issues
-├── tests/  scripts/             pytest tests and a manual API script
+├── tests/  scripts/             pytest tests (incl. the mock-based Phase 2 suite) and a manual API script
 ├── docker-compose.yml  .env.example  pyproject.toml  requirements.txt
-└── test_phase2_suite.py         mock-based Phase 2 suite
 ```
 
 ## Tests
 
 ```bash
-python test_phase2_suite.py     # no database needed - wallet, refunds, status mapping, tracking code
 pytest                          # tests/ - three tests need a migrated PostgreSQL database (use a separate one)
 ```
 
-`test_phase2_suite.py` passes (5 of 5 checks) and all 25 tests in `tests/` pass against a fresh database created with `alembic upgrade head`; 22 of them need no database at all. How to run the database tests safely: [`docs/getting-started.md`](docs/getting-started.md).
+All tests in `tests/` pass against a fresh database created with `alembic upgrade head`; most of them need no database at all. How to run the database tests safely on a separate database: [`docs/getting-started.md`](docs/getting-started.md).
 
 ## Documentation
 
@@ -124,12 +122,11 @@ pytest                          # tests/ - three tests need a migrated PostgreSQ
 | [`docs/architecture.md`](docs/architecture.md) | Layers, data model, order flow |
 | [`docs/phase2-decisions.md`](docs/phase2-decisions.md) | Refund rule, rounding, cancel semantics |
 | [`docs/phase3-decisions.md`](docs/phase3-decisions.md) | Service-id fallback for view orders |
-| [`docs/known-issues-and-roadmap.md`](docs/known-issues-and-roadmap.md) | What is incomplete, and the plan |
 
 ## Security notes
 
 * Secrets live only in `.env` (ignored by git); `.env.example` has placeholders.
-* The compose file contains a development-only database password; change it before any shared use.
+* The database password is read from `.env` by `docker-compose.yml`; nothing secret is stored in the repository.
 * Never paste project dumps that include `.env` into chats or issues.
 
 ## خلاصه به فارسی
@@ -140,7 +137,7 @@ pytest                          # tests/ - three tests need a migrated PostgreSQ
 - **فاز ۲:** کیف‌پول (کسر و افزایش اتمیک سکه)، ثبت سفارش با کد پیگیری و کلید جلوگیری از ثبت تکراری، اتصال به RapidSeen API، چرخه عمر سفارش و مرجوعی متناسب برای سفارش‌های ناقص یا لغوشده.
 - **فاز ۳:** جریان ثبت بازدید تک‌پستی و چندپستی، اعتبارسنجی لینک و پیگیری سفارش؛ به سرویس‌های اصلی وصل شده و تست واحد دارد، ولی هنوز یک‌بار به‌صورت کامل با ربات و سرویس‌دهنده‌ی واقعی اجرا نشده است.
 
-نصب و اجرا: بخش **Quick start** بالا. موارد ناقص و برنامه ادامه‌ی کار: [`docs/known-issues-and-roadmap.md`](docs/known-issues-and-roadmap.md).
+نصب و اجرا: بخش **Quick start** بالا.
 
 ## License
 
